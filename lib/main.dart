@@ -2,147 +2,139 @@ import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const CalculatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CalculatorApp extends StatelessWidget {
+  const CalculatorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Danny Tran\'s Calculator',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Danny Tran\'s Calculator'),
+      title: 'Daniel Tran Calculator',
+      theme: ThemeData.dark(),
+      home: const CalculatorScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class CalculatorScreen extends StatefulWidget {
+  const CalculatorScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _CalculatorScreenState createState() => _CalculatorScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _CalculatorScreenState extends State<CalculatorScreen> {
   String _expression = "";
   String _result = "";
 
-  void _onButtonPressed(String value) {
+  void _onPressed(String value) {
     setState(() {
       if (value == "C") {
         _expression = "";
         _result = "";
       } else if (value == "=") {
-        _evaluateExpression();
+        try {
+          final parser = ExpressionParser();
+          final exp = parser.parse(_expression);
+          final evaluator = const ExpressionEvaluator();
+          _result = evaluator.eval(exp, {}).toString();
+        } catch (e) {
+          _result = "Error";
+        }
+      } else if (value == "x²") {
+        // Square the last number
+        if (_expression.isNotEmpty) {
+          _expression += "²";
+          try {
+            final num lastNumber =
+                double.parse(_expression.replaceAll("²", ""));
+            _result = (lastNumber * lastNumber).toString();
+          } catch (e) {
+            _result = "Error";
+          }
+        }
+      } else if (value == "%") {
+        // Add modulo operator
+        _expression += "%";
       } else {
         _expression += value;
       }
     });
   }
 
-  void _evaluateExpression() {
-    try {
-      final parsedExpression = Expression.parse(_expression);
-      final evaluator = const ExpressionEvaluator();
-      final evaluationResult = evaluator.eval(parsedExpression, {});
-      setState(() {
-        _result = evaluationResult.toString();
-      });
-    } catch (e) {
-      setState(() {
-        _result = "Error";
-      });
-    }
-  }
-
-  Widget _buildButton(String value, {Color? color}) {
-    return Expanded(
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: color ?? Colors.blue,
-          padding: const EdgeInsets.all(20),
-        ),
-        onPressed: () => _onButtonPressed(value),
-        child: Text(
-          value,
-          style: const TextStyle(fontSize: 24),
-        ),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Daniel Tran Calculator')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              alignment: Alignment.bottomRight,
+              child: Text(
+                _expression,
+                style:
+                    const TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              alignment: Alignment.bottomRight,
+              child: Text(
+                _result,
+                style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green),
+              ),
+            ),
+          ),
+          GridView.count(
+            crossAxisCount: 4,
+            shrinkWrap: true,
+            children: [
+              _buildButton("C", Colors.red),
+              _buildButton("x²", Colors.orange),
+              _buildButton("%", Colors.orange),
+              _buildButton("/", Colors.blue),
+              _buildButton("7", Colors.white),
+              _buildButton("8", Colors.white),
+              _buildButton("9", Colors.white),
+              _buildButton("*", Colors.blue),
+              _buildButton("4", Colors.white),
+              _buildButton("5", Colors.white),
+              _buildButton("6", Colors.white),
+              _buildButton("-", Colors.blue),
+              _buildButton("1", Colors.white),
+              _buildButton("2", Colors.white),
+              _buildButton("3", Colors.white),
+              _buildButton("+", Colors.blue),
+              _buildButton("0", Colors.white),
+              _buildButton(".", Colors.white),
+              _buildButton("=", Colors.green),
+            ],
+          ),
+        ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              alignment: Alignment.bottomRight,
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                _expression,
-                style: const TextStyle(fontSize: 32),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              alignment: Alignment.bottomRight,
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                _result,
-                style:
-                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Row(
-                children: [
-                  _buildButton("7"),
-                  _buildButton("8"),
-                  _buildButton("9"),
-                  _buildButton("/", color: Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildButton("4"),
-                  _buildButton("5"),
-                  _buildButton("6"),
-                  _buildButton("*", color: Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildButton("1"),
-                  _buildButton("2"),
-                  _buildButton("3"),
-                  _buildButton("-", color: Colors.orange),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildButton("0"),
-                  _buildButton("C", color: Colors.red),
-                  _buildButton("=", color: Colors.green),
-                  _buildButton("+", color: Colors.orange),
-                ],
-              ),
-            ],
-          ),
-        ],
+  Widget _buildButton(String value, Color color) {
+    return TextButton(
+      onPressed: () => _onPressed(value),
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        padding: const EdgeInsets.all(20),
+      ),
+      child: Text(
+        value,
+        style: const TextStyle(fontSize: 24),
       ),
     );
   }
